@@ -1,10 +1,9 @@
 # Model Comparison
 
-This folder runs inference-only PSNR/SSIM and resource comparisons for T2T-VICL,
-MAE-VQGAN, Painter, Prompt-Diffusion, InstructDiffusion, VisualCloze, and PromptGIP.
+This folder runs inference-only PSNR/SSIM and resource comparisons for T2T-VICL, MAE-VQGAN, Painter, Prompt-Diffusion, InstructDiffusion, VisualCloze, and PromptGIP.
 Competitors use their official source and released/default inference settings.
 
-Run everything from the `Task-Transfer` root.
+Run everything from the root.
 
 ## Prepare and check the 11 x 100 split
 
@@ -15,9 +14,7 @@ python -m comparison.datasets --manifest comparison/competitor_tasks.json --data
 python -m unittest discover -s comparison/tests -p 'test_*.py'
 ```
 
-The generated competitor JSON is
-`data/dataset/eval_dataset_same_task.json`. Each same-task demonstration differs
-from its query. Inpainting is excluded.
+The generated competitor JSON is `data/dataset/eval_dataset_same_task.json`. Each same-task demonstration differs from its query. Inpainting is excluded.
 
 ## Quality
 
@@ -46,23 +43,17 @@ python -m comparison.quality --adapter prompt-gip --conditions official --task-m
 
 ## Resources
 
-Run each model separately on the same GPU:
+Run the four T2T-VICL backbones separately on the same GPU. This uses the 26 original Task A-to-B directions in `data/dataset/eval_dataset.json`:
 
 ```bash
+export VICL_WEIGHTS="$PWD/weights"
+export PROMPT_CKPT="$PWD/Qwen3-VL/qwen-vl-finetune/output/checkpoint-4875"
+
 python -m comparison.preflight --require-dispatch-flops
-python -m comparison.suite --adapter t2t-qwen --conditions ours --task-manifest comparison/t2t_target_tasks.json --prompt-checkpoint Qwen3-VL/qwen-vl-finetune/output/checkpoint-4875 --max-samples 100 --warmup 5 --profile-flops --output-dir comparison/outputs/resources/t2t_qwen
-
-python -m comparison.suite --adapter painter --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$PAINTER_CKPT" --max-samples 100 --warmup 5 --profile-flops --output-dir comparison/outputs/resources/painter
-
-python -m comparison.suite --adapter mae-vqgan --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$MAE_CKPT" --max-samples 100 --warmup 5 --profile-flops --output-dir comparison/outputs/resources/mae_vqgan
-
-python -m comparison.suite --adapter prompt-diffusion --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$PROMPT_DIFFUSION_CKPT" --max-samples 100 --warmup 5 --profile-flops --output-dir comparison/outputs/resources/prompt_diffusion
-
-python -m comparison.suite --adapter instruct-diffusion --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$INSTRUCT_CKPT" --max-samples 100 --warmup 5 --profile-flops --output-dir comparison/outputs/resources/instruct_diffusion
-
-python -m comparison.suite --adapter visualcloze --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$VICL_WEIGHTS/VisualCloze/visualcloze-384-lora.pth" --max-samples 100 --warmup 5 --profile-flops --output-dir comparison/outputs/resources/visualcloze
-
-python -m comparison.suite --adapter prompt-gip --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$VICL_WEIGHTS/PromptGIP/PromptGIP-checkpoint.pth" --max-samples 100 --warmup 5 --profile-flops --output-dir comparison/outputs/resources/prompt_gip
+python -m comparison.suite --adapter t2t-qwen --conditions ours --task-manifest comparison/t2t_tasks.json --model-id "$VICL_WEIGHTS/Qwen-Image-Edit-2511" --prompt-checkpoint "$PROMPT_CKPT" --max-samples 10 --warmup 5 --resolution 448 --profile-flops --output-dir comparison/outputs/resources/t2t_qwen
+python -m comparison.suite --adapter t2t-flux2 --conditions ours --task-manifest comparison/t2t_tasks.json --model-id "$VICL_WEIGHTS/FLUX.2-dev-bnb-4bit" --prompt-checkpoint "$PROMPT_CKPT" --max-samples 10 --warmup 5 --resolution 448 --profile-flops --output-dir comparison/outputs/resources/t2t_flux2
+python -m comparison.suite --adapter t2t-omnigen2 --conditions ours --task-manifest comparison/t2t_tasks.json --model-id "$VICL_WEIGHTS/OmniGen2" --prompt-checkpoint "$PROMPT_CKPT" --max-samples 10 --warmup 5 --resolution 448 --profile-flops --output-dir comparison/outputs/resources/t2t_omnigen2
+python -m comparison.suite --adapter t2t-firered --conditions ours --task-manifest comparison/t2t_tasks.json --model-id "$VICL_WEIGHTS/FireRed-Image-Edit-1.1" --prompt-checkpoint "$PROMPT_CKPT" --max-samples 10 --warmup 5 --resolution 448 --profile-flops --output-dir comparison/outputs/resources/t2t_firered
 ```
 
 ## Tables and figure
@@ -72,8 +63,7 @@ python -m comparison.quality_report comparison/outputs/quality/*/*_quality_lates
 
 python -m comparison.qualitative_grid comparison/outputs/quality/*/*_quality_latest.json --rebuttal-first T2T-VICL=data/output/supplementary/gemini/qwen --output ../latex/fig/competitor_comparison.png
 
-python -m comparison.report comparison/outputs/resources/*/*_suite_latest.json --output-dir comparison/outputs/paper_tables
+python -m comparison.report comparison/outputs/resources/*/*_suite_latest.json --output-dir comparison/outputs/paper_tables/efficiency
 ```
 
-The new competitor rows require 100 completed queries per task. The figure command
-uses the saved first attempt from the rebuttal run for T2T-VICL.
+The new competitor rows require 100 completed queries per task. The figure command uses the saved first attempt from the rebuttal run for T2T-VICL.

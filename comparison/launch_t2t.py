@@ -63,7 +63,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument(
         "--task-manifest",
         type=Path,
-        default=Path(__file__).with_name("t2t_target_tasks.json"),
+        default=Path(__file__).with_name("t2t_tasks.json"),
     )
     result.add_argument("--tasks", nargs="+")
     result.add_argument("--max-samples", type=int, default=100)

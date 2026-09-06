@@ -374,7 +374,7 @@ def run_suite(args) -> dict[str, Any]:
 
     project_root = Path(__file__).resolve().parents[1]
     default_manifest_name = (
-        "t2t_target_tasks.json"
+        "t2t_tasks.json"
         if args.adapter.startswith("t2t-")
         else "competitor_tasks.json"
     )
@@ -395,8 +395,8 @@ def run_suite(args) -> dict[str, Any]:
         )
     if False in cross_task_flags and args.adapter.startswith("t2t-"):
         raise ValueError(
-            "T2T-VICL suite runs require a cross-task manifest such as "
-            "comparison/t2t_target_tasks.json"
+            "T2T-VICL resource suites require the original cross-task manifest "
+            "comparison/t2t_tasks.json"
         )
 
     default_data_root = project_root / manifest["data_root"]
@@ -751,7 +751,7 @@ def parser():
         type=Path,
         default=None,
         help=(
-            "Task manifest; defaults to t2t_target_tasks.json for t2t-* adapters "
+            "Task manifest; defaults to t2t_tasks.json for t2t-* adapters "
             "and competitor_tasks.json for paper-facing official baselines"
         ),
     )

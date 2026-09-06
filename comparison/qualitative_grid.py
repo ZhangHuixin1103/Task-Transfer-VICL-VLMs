@@ -9,7 +9,7 @@ import random
 from pathlib import Path
 from typing import Any, Sequence
 
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -19,7 +19,16 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
 
 def _method_label(document: dict[str, Any], condition: str) -> str:
     adapter = str(document["adapter"])
-    return adapter if condition == "official" else f"{adapter}:{condition}"
+    labels = {
+        "mae-vqgan": "MAE-VQGAN",
+        "painter": "Painter",
+        "prompt-diffusion": "PromptDiff.",
+        "instruct-diffusion": "InstructDiff.",
+        "visualcloze": "VisualCloze",
+        "prompt-gip": "PromptGIP",
+    }
+    label = labels.get(adapter, adapter)
+    return label if condition == "official" else f"{label}:{condition}"
 
 
 def load_quality_predictions(path: Path) -> dict[str, dict[str, dict[str, str]]]:
@@ -31,12 +40,24 @@ def load_quality_predictions(path: Path) -> dict[str, dict[str, dict[str, str]]]
         label = _method_label(document, str(condition.get("condition")))
         records: dict[str, dict[str, str]] = {}
         for task in condition.get("tasks") or []:
-            for row in _load_jsonl(Path(task["records_jsonl"])):
+            records_path = Path(task["records_jsonl"])
+            if not records_path.is_file():
+                records_path = path.parent / "records" / records_path.name
+            for row in _load_jsonl(records_path):
                 prediction = row.get("output_path")
                 sample = row.get("sample") or {}
-                if prediction and Path(prediction).is_file():
+                prediction_path = Path(prediction) if prediction else None
+                if prediction_path is not None and not prediction_path.is_file():
+                    prediction_path = (
+                        path.parent
+                        / "images"
+                        / str(condition.get("condition"))
+                        / str(task["task"])
+                        / prediction_path.name
+                    )
+                if prediction_path is not None and prediction_path.is_file():
                     records[str(sample["task_b_input"])] = {
-                        "prediction": str(Path(prediction).resolve()),
+                        "prediction": str(prediction_path.resolve()),
                         "target": str(sample["task_b_output"]),
                         "demo": str(sample["task_a_input"]),
                         "task": str(task["task"]),
@@ -124,13 +145,17 @@ def load_rebuttal_first_predictions(
 
 
 def _cell(path: Path, size: int, label: str) -> Image.Image:
-    band = 28
+    band = 32
     canvas = Image.new("RGB", (size, size + band), "white")
     with Image.open(path) as source:
         image = ImageOps.contain(source.convert("RGB"), (size, size))
         canvas.paste(image, ((size - image.width) // 2, band + (size - image.height) // 2))
     draw = ImageDraw.Draw(canvas)
-    draw.text((6, 7), label, fill="black")
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", 18)
+    except OSError:
+        font = ImageFont.load_default()
+    draw.text((6, 6), label, fill="black", font=font)
     return canvas
 
 
@@ -162,33 +187,23 @@ def build_grid(
         for key in sorted(task_rng.sample(candidates, samples_per_task)):
             selected.append((task, key))
 
-    labels = ["Query", "Same-task demo", "Ground truth", *methods]
+    labels = ["Query", "Ground truth", *methods]
     grid = Image.new(
         "RGB",
-        (cell_size * len(labels), (cell_size + 28) * len(selected)),
+        (cell_size * len(labels), (cell_size + 32) * len(selected)),
         "white",
     )
     for row_index, (task, key) in enumerate(selected):
         record = first_records[key]
-        demo = next(
-            (
-                records[key].get("demo")
-                for records in methods.values()
-                if records[key].get("demo")
-            ),
-            None,
-        )
-        if demo is None:
-            raise ValueError("A standard competitor result is required for the demo column")
         paths = [
             data_root / key,
-            data_root / demo,
             data_root / record["target"],
             *(Path(methods[label][key]["prediction"]) for label in methods),
         ]
         for column, (label, path) in enumerate(zip(labels, paths)):
-            rendered = _cell(path, cell_size, f"{task}: {label}")
-            grid.paste(rendered, (column * cell_size, row_index * (cell_size + 28)))
+            row_label = task.replace("_", " ").title()
+            rendered = _cell(path, cell_size, f"{row_label}: {label}" if column == 0 else label)
+            grid.paste(rendered, (column * cell_size, row_index * (cell_size + 32)))
             rendered.close()
     output.parent.mkdir(parents=True, exist_ok=True)
     grid.save(output)
