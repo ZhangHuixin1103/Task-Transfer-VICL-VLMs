@@ -63,7 +63,7 @@ python -m comparison.quality_report comparison/outputs/quality/*/*_quality_lates
 
 python -m comparison.qualitative_grid comparison/outputs/quality/*/*_quality_latest.json --rebuttal-first T2T-VICL=data/output/supplementary/gemini/qwen --output ../latex/fig/competitor_comparison.png
 
-python -m comparison.report comparison/outputs/resources/*/*_suite_latest.json --output-dir comparison/outputs/paper_tables/efficiency
+python -m comparison.report comparison/outputs/resources/*/*_suite_latest.json --output-dir comparison/outputs/paper_tables/resources
 ```
 
-The new competitor rows require 100 completed queries per task. The figure command uses the saved first attempt from the rebuttal run for T2T-VICL.
+The new competitor rows require 100 completed queries per task. The figure command uses the saved T2T-VICL outputs.
