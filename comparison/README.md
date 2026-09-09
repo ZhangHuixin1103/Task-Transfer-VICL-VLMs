@@ -1,6 +1,6 @@
 # Model Comparison
 
-This folder runs inference-only PSNR/SSIM and resource comparisons for T2T-VICL, MAE-VQGAN, Painter, Prompt-Diffusion, InstructDiffusion, VisualCloze, and PromptGIP.
+This folder runs inference-only PSNR/SSIM and resource comparisons for T2T-VICL, MAE-VQGAN, Painter, Prompt-Diffusion, InstructDiffusion, and VisualCloze.
 Competitors use their official source and released/default inference settings.
 
 Run everything from the root.
@@ -37,8 +37,6 @@ python -m comparison.quality --adapter prompt-diffusion --conditions official --
 python -m comparison.quality --adapter instruct-diffusion --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$INSTRUCT_CKPT" --max-samples -1 --resume --output-dir comparison/outputs/quality/instruct_diffusion
 
 python -m comparison.quality --adapter visualcloze --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$VICL_WEIGHTS/VisualCloze/visualcloze-384-lora.pth" --max-samples -1 --resume --output-dir comparison/outputs/quality/visualcloze
-
-python -m comparison.quality --adapter prompt-gip --conditions official --task-manifest comparison/competitor_tasks.json --checkpoint "$VICL_WEIGHTS/PromptGIP/PromptGIP-checkpoint.pth" --max-samples -1 --resume --output-dir comparison/outputs/quality/prompt_gip
 ```
 
 ## Resources
