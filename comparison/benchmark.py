@@ -318,6 +318,25 @@ def build_adapter(args, project_root: Path):
             demo_input=args.demo_input,
             demo_output=args.demo_output,
         )
+    if args.adapter == "lvm":
+        from .adapters.lvm import LVMAdapter
+
+        if not args.checkpoint:
+            raise ValueError("--checkpoint is required for lvm")
+        return LVMAdapter(
+            repository=_external_repository("LVM"),
+            dataset_json=dataset_json,
+            data_root=data_root,
+            checkpoint=args.checkpoint,
+            vqvae_checkpoint=args.lvm_vqvae,
+            sample_index=args.sample_index,
+            device=args.device,
+            dtype=args.dtype or "fp16",
+            resolution=args.resolution or 256,
+            seed=args.seed if args.seed is not None else 42,
+            demo_input=args.demo_input,
+            demo_output=args.demo_output,
+        )
     if args.adapter == "toy":
         return ToyAdapter(device=args.device)
     raise ValueError(args.adapter)
@@ -434,6 +453,7 @@ def parser() -> argparse.ArgumentParser:
             "visualcloze",
             "prompt-diffusion",
             "instruct-diffusion",
+            "lvm",
             "toy",
         ],
     )
@@ -449,6 +469,11 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--checkpoint")
     result.add_argument("--vqgan-config")
     result.add_argument("--vqgan-checkpoint")
+    result.add_argument(
+        "--lvm-vqvae",
+        default="Emma02/vqvae_ckpts",
+        help="LVM VQGAN directory or Hugging Face model ID",
+    )
     result.add_argument("--config", default="configs/instruct_diffusion.yaml")
     result.add_argument(
         "--prompt-diffusion-config", default="models/cldm_v15.yaml"

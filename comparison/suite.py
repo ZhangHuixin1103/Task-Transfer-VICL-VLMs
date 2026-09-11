@@ -94,6 +94,7 @@ def _suite_signature(adapter, args, manifest_path: Path, conditions: list[str]) 
         "resolution": getattr(adapter, "resolution", args.resolution),
         "model_id": getattr(adapter, "model_id", None),
         "checkpoint": getattr(adapter, "checkpoint", None),
+        "vqvae_checkpoint": getattr(adapter, "vqvae_checkpoint", None),
         "prompt_checkpoint": getattr(adapter, "prompt_checkpoint", None),
         "prompt_base_model": getattr(adapter, "prompt_base_model", None),
         "steps": getattr(adapter, "steps", None),

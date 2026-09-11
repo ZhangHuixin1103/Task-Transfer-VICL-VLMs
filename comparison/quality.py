@@ -380,6 +380,9 @@ def run_quality(args) -> dict[str, Any]:
                         "sampling_seed": args.sampling_seed,
                         "model_id": getattr(adapter, "model_id", None),
                         "checkpoint": getattr(adapter, "checkpoint", None),
+                        "vqvae_checkpoint": getattr(
+                            adapter, "vqvae_checkpoint", None
+                        ),
                         "steps": getattr(adapter, "steps", None),
                         "seed": getattr(adapter, "seed", None),
                         "model_resolution": getattr(
@@ -565,6 +568,7 @@ def parser() -> argparse.ArgumentParser:
                 "visualcloze",
                 "prompt-diffusion",
                 "instruct-diffusion",
+                "lvm",
             ]
         elif action.dest in {
             "dataset_json",

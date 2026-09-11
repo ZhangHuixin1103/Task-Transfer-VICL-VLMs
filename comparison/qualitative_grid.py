@@ -26,6 +26,7 @@ def _method_label(document: dict[str, Any], condition: str) -> str:
         "instruct-diffusion": "InstructDiff.",
         "visualcloze": "VisualCloze",
         "prompt-gip": "PromptGIP",
+        "lvm": "LVM",
     }
     label = labels.get(adapter, adapter)
     return label if condition == "official" else f"{label}:{condition}"

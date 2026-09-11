@@ -43,6 +43,13 @@
       "license": "no license file detected at audited commit",
       "vendored_from": "tracked source snapshot from a clean official clone",
       "local_changes": "none"
+    },
+    "LVM": {
+      "repository": "https://github.com/ytongbai/LVM.git",
+      "commit": "b6de939ef0eb1ee6593445a7f5268145f338749b",
+      "license": "Apache-2.0",
+      "vendored_from": "tracked source snapshot from a clean official clone",
+      "local_changes": "none"
     }
   }
 }
